@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Can't Stop</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+<!-- ── CHARACTER CREATE ───────────────────────────────────────────────────── -->
+<div id="screen-create" class="screen active">
+  <h1>Can't Stop</h1>
+  <p class="subtitle">Secret signal card game &middot; 2 vs 2</p>
+
+  <div class="create-form">
+    <input id="input-name" type="text" maxlength="16" placeholder="Your name" autocomplete="off"/>
+
+    <div class="section-label">Your character</div>
+    <div class="char-builder">
+      <div id="create-preview" class="create-avatar-preview"></div>
+      <div class="char-controls">
+        <div class="char-row">
+          <button class="char-btn active" data-gender="male">Male</button>
+          <button class="char-btn" data-gender="female">Female</button>
+        </div>
+        <div class="char-row skin-row">
+          <button class="skin-btn active" data-skin="light"  title="Light"></button>
+          <button class="skin-btn"        data-skin="medium" title="Medium"></button>
+          <button class="skin-btn"        data-skin="dark"   title="Dark"></button>
+        </div>
+      </div>
+    </div>
+
+    <div class="section-label">Team</div>
+    <div class="team-options">
+      <button class="team-btn active" data-team="1">
+        <div class="team-dot t1"></div>
+        <div>
+          <div class="team-name">Team 1</div>
+          <div class="team-slots" id="team-slots-1">0/2 free</div>
+        </div>
+      </button>
+      <button class="team-btn" data-team="2">
+        <div class="team-dot t2"></div>
+        <div>
+          <div class="team-name">Team 2</div>
+          <div class="team-slots" id="team-slots-2">0/2 free</div>
+        </div>
+      </button>
+    </div>
+
+    <button id="btn-join">Join Lobby</button>
+  </div>
+  <p id="create-error" class="error-msg"></p>
+</div>
+
+<!-- ── LOBBY ──────────────────────────────────────────────────────────────── -->
+<div id="screen-lobby" class="screen">
+  <h2>Lobby</h2>
+  <p id="lobby-status" class="lobby-status">Waiting for players…</p>
+
+  <!-- Mini table showing seats -->
+  <div class="lb-arena">
+    <div class="lb-seat lb-top"    id="lb-top"></div>
+    <div class="lb-middle-row">
+      <div class="lb-seat lb-left"  id="lb-left"></div>
+      <div class="lb-felt"></div>
+      <div class="lb-seat lb-right" id="lb-right"></div>
+    </div>
+    <div class="lb-seat lb-bottom" id="lb-bottom"></div>
+  </div>
+
+  <!-- WiFi share -->
+  <div class="wifi-box" id="wifi-box">
+    <div class="wifi-label">📡 Share with friends on the same WiFi:</div>
+    <div class="wifi-url-row">
+      <span id="wifi-url" class="wifi-url">loading…</span>
+      <button id="btn-copy" class="btn-copy">Copy</button>
+    </div>
+    <div id="qr-code" class="qr-code"></div>
+  </div>
+
+  <!-- Team chat panel -->
+  <div class="chat-panel" id="chat-panel">
+    <div class="chat-header">
+      <span id="chat-title">Team Chat</span>
+      <span class="chat-hint">Only your team can see this</span>
+    </div>
+
+    <!-- Signal vote — shown once you're in a team -->
+    <div id="signal-vote" class="signal-vote" style="display:none">
+      <div class="signal-vote-label">Choose your team signal:</div>
+      <div id="signal-vote-btns" class="signal-vote-btns"></div>
+    </div>
+
+    <div class="chat-messages" id="chat-messages"></div>
+    <div class="chat-input-row">
+      <input id="chat-input" type="text" maxlength="200"
+        placeholder="Talk to your teammate…" autocomplete="off"/>
+      <button id="btn-chat-send">Send</button>
+    </div>
+  </div>
+
+  <div class="lobby-btns">
+    <button id="btn-start" class="btn-primary" style="display:none">Start Game</button>
+    <button id="btn-test"  class="btn-ghost"   style="display:none">Test Mode (solo)</button>
+  </div>
+  <p id="lobby-error" class="error-msg"></p>
+</div>
+
+<!-- ── GAME ───────────────────────────────────────────────────────────────── -->
+<div id="screen-game" class="screen">
+
+  <div class="game-arena">
+    <!-- Top player -->
+    <div class="pslot slot-top" style="position:relative">
+      <div id="av-top"   class="av-wrap"></div>
+      <div id="nm-top"   class="pname"></div>
+    </div>
+
+    <div class="arena-row">
+      <!-- Left player -->
+      <div class="pslot slot-side slot-left" style="position:relative">
+        <div id="av-left"  class="av-wrap"></div>
+        <div id="nm-left"  class="pname"></div>
+      </div>
+
+      <!-- Felt table center -->
+      <div class="felt-wrap">
+        <div class="felt">
+          <div id="table-cards" class="table-cards"></div>
+          <div class="felt-footer">
+            <span class="timer-label">next:</span>
+            <span id="countdown" class="countdown">5</span>
+            <span class="timer-label">s</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right player -->
+      <div class="pslot slot-side slot-right" style="position:relative">
+        <div id="av-right" class="av-wrap"></div>
+        <div id="nm-right" class="pname"></div>
+      </div>
+    </div>
+
+    <!-- Bottom player (you) -->
+    <div class="pslot slot-bottom" style="position:relative">
+      <div id="av-bottom" class="av-wrap"></div>
+      <div id="nm-bottom" class="pname you-tag">You</div>
+    </div>
+  </div>
+
+  <!-- Hand -->
+  <div class="hand-section">
+    <div class="section-label">YOUR HAND</div>
+    <div id="hand-cards" class="hand-row"></div>
+  </div>
+
+  <!-- Action bar -->
+  <div class="action-bar">
+    <!-- Your signal buttons — only visible to you -->
+    <div id="signal-bar" class="signal-bar">
+      <div class="signal-bar-label">Your secret signals:</div>
+      <div class="signal-btns">
+        <button id="btn-signal-1" class="btn-signal">—</button>
+        <button id="btn-signal-2" class="btn-signal">—</button>
+      </div>
+    </div>
+
+    <div id="cant-stop-wrap">
+      <div class="cant-stop-hint" id="cant-stop-hint" style="display:none">Your team has 4 of a kind!</div>
+      <button id="btn-cant-stop" class="btn-cant-stop">Can't Stop!</button>
+    </div>
+    <button id="btn-stop" class="btn-stop">Stop!</button>
+  </div>
+
+  <p id="game-error" class="error-msg"></p>
+</div>
+
+<!-- ── END ────────────────────────────────────────────────────────────────── -->
+<div id="screen-end" class="screen">
+  <div class="end-card">
+    <div id="end-emoji" class="end-emoji"></div>
+    <h2 id="end-title"></h2>
+    <p  id="end-reason"></p>
+    <div id="end-winning-hand" class="end-winning-hand"></div>
+    <div class="end-btns">
+      <button id="btn-play-again">Play Again</button>
+      <button id="btn-new-game" class="btn-ghost">New Game</button>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script src="/socket.io/socket.io.js"></script>
+<script src="avatar.js"></script>
+<script src="game.js"></script>
+</body>
+</html>
