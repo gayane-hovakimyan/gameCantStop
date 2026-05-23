@@ -338,21 +338,34 @@ io.on('connection', (socket) => {
     fanOutState();
   });
 
-  // Opponents call Stop when they think they spotted the real signal
+  // Opponents call Stop when they think they spotted the real signal.
+  // Wrong call (no real signal in progress, or own teammate signaled) → stopper's team loses.
   socket.on('stop', () => {
     if (!game || game.phase === 'ended') return;
-    const me       = game.players.find(p => p.id === socket.id);
+    const me = game.players.find(p => p.id === socket.id);
+    if (!me) return;
     const signaler = game.players.find(p => p.id === game.signaledBy);
+    const signalerHand = game.signaledBy ? (game.hands[game.signaledBy] || []) : [];
+    const validCatch =
+      game.phase === 'signaled' &&
+      signaler && signaler.team !== me.team &&
+      hasQuad(signalerHand);
 
-    if (game.phase !== 'signaled') {
-      return; // no active signal — silently ignore (could be a bluff)
-    }
-    if (!signaler || me.team === signaler.team) {
-      return; // can't stop your own team — silently ignore
-    }
-    game.phase  = 'ended';
-    game.winner = { team: me.team, reason: `Team ${me.team} wins — caught the signal!` };
+    game.phase = 'ended';
     stopTableTimer();
+    if (validCatch) {
+      game.winner = {
+        team:        me.team,
+        reason:      `Team ${me.team} wins — caught the signal!`,
+        winningHand: signalerHand,
+      };
+    } else {
+      const otherTeam = me.team === 1 ? 2 : 1;
+      game.winner = {
+        team:   otherTeam,
+        reason: `Team ${otherTeam} wins — Team ${me.team} called Stop on nothing!`,
+      };
+    }
     fanOutState();
   });
 
